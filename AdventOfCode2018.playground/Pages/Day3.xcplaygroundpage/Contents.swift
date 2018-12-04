@@ -60,7 +60,6 @@ func claimsFromInput(_ input: String) -> [Claim] {
     let regex = try! NSRegularExpression(pattern: pattern)
 
     var claims = [Claim]()
-
     for claimString in claimStrings {
         let result = regex.matches(in: claimString, range:NSMakeRange(0, claimString.count))[0]
 
@@ -72,15 +71,10 @@ func claimsFromInput(_ input: String) -> [Claim] {
 
         claims.append(Claim(id: id, x: x, y: y, width: width, height: height))
     }
-
     return claims
 }
 
 extension String {
-    subscript(i: Int) -> Character {
-        return self[index(startIndex, offsetBy: i)]
-    }
-
     subscript(r: Range<Int>) -> String {
         let start = index(startIndex, offsetBy: r.lowerBound)
         let end = index(startIndex, offsetBy: r.upperBound)
@@ -132,7 +126,7 @@ print(overlapCount()) // 104241
  */
 
 func findClaimWithoutOverlap() -> Claim? {
-    return claims.first { claimHasOverlap($0, in: fabric) }
+    return claims.first { !claimHasOverlap($0, in: fabric) }
 }
 
 func claimHasOverlap(_ claim: Claim, in fabric: [Int]) -> Bool {
@@ -140,11 +134,11 @@ func claimHasOverlap(_ claim: Claim, in fabric: [Int]) -> Bool {
         for x in claim.x..<claim.x+claim.width {
             let index = y * fabricWidth + x
             if fabric[index] > 1 {
-                return false
+                return true
             }
         }
     }
-    return true
+    return false
 }
 
 print(findClaimWithoutOverlap()!.id) // 806
