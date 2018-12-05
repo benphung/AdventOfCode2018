@@ -69,18 +69,6 @@ struct SleepRecord {
     }
 }
 
-extension String {
-    subscript(r: Range<Int>) -> String {
-        let start = index(startIndex, offsetBy: r.lowerBound)
-        let end = index(startIndex, offsetBy: r.upperBound)
-        return String(self[start..<end])
-    }
-
-    subscript(range: NSRange) -> String {
-        return self[range.location..<range.location+range.length]
-    }
-}
-
 func parseSleepRecords(from input: String) -> [SleepRecord] {
     let chronologicallySortedRecords = input.split(separator: "\n").map { String($0) }.sorted()
 

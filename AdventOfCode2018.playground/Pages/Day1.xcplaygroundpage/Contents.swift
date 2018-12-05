@@ -36,9 +36,7 @@ func calculateResultingFrequency(_ input: String) -> Int {
         .map { (string) -> Int in
             return Int(string)!
         }
-        .reduce(0) { (result, changeInFrequency) -> Int in
-            return result + changeInFrequency
-        }
+        .reduce(0, +)
 }
 
 print(calculateResultingFrequency(input)) // 574

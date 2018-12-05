@@ -107,16 +107,4 @@ func calculateCommonLetters(_ input: String) -> String? {
     return nil
 }
 
-extension String {
-    subscript(i: Int) -> Character {
-        return self[index(startIndex, offsetBy: i)]
-    }
-
-    subscript(r: Range<Int>) -> String {
-        let start = index(startIndex, offsetBy: r.lowerBound)
-        let end = index(startIndex, offsetBy: r.upperBound)
-        return String(self[start..<end])
-    }
-}
-
 print(calculateCommonLetters(input)!) // mbruvapghxlzycbhmfqjonsie
