@@ -220,111 +220,132 @@ class Cart {
     var x: Int
     var y: Int
     var direction: Direction
-    var lastTakenTurnAtIntersection: Turn?
     var crashed = false
+    private var lastTakenTurnAtIntersection: Turn?
 
     init(x: Int, y: Int, direction: Direction) {
         self.x = x
         self.y = y
         self.direction = direction
     }
-}
 
-func directionForCharacter(_ character: Character, cart: Cart) -> Direction {
-    switch character {
-    case "-", ">", "<":
-        return cart.direction
-    case "|", "v", "^":
-        return cart.direction
-    case "\\":
-        switch cart.direction {
+    func updatePosition() {
+        switch direction {
         case .left:
-            return .up
+            x -= 1
         case .right:
-            return .down
+            x += 1
         case .up:
-            return .left
+            y -= 1
         case .down:
-            return .right
-        }
-    case "/":
-        switch cart.direction {
-        case .left:
-            return .down
-        case .right:
-            return .up
-        case .up:
-            return .right
-        case .down:
-            return .left
-        }
-    case "+":
-        return nextDirectionAtIntersectionForCart(cart)
-    default:
-        fatalError()
-    }
-}
-
-func nextDirectionAtIntersectionForCart(_ cart: Cart) -> Direction {
-    let nextTurn = nextTurnForCart(cart)
-
-    switch cart.direction {
-    case .up:
-        switch nextTurn {
-        case .left:
-            return .left
-        case .right:
-            return .right
-        case .straight:
-            return .up
-        }
-    case .down:
-        switch nextTurn {
-        case .left:
-            return .right
-        case .right:
-            return .left
-        case .straight:
-            return .down
-        }
-    case .left:
-        switch nextTurn {
-        case .left:
-            return .down
-        case .right:
-            return .up
-        case .straight:
-            return .left
-        }
-    case .right:
-        switch nextTurn {
-        case .left:
-            return .up
-        case .right:
-            return .down
-        case .straight:
-            return .right
+            y += 1
         }
     }
-}
 
-func nextTurnForCart(_ cart: Cart) -> Turn {
-    let nextTurn: Turn
-    if let lastTakenTurnAtIntersection = cart.lastTakenTurnAtIntersection {
-        switch lastTakenTurnAtIntersection {
+    func updateDirection(_ character: Character) {
+        direction = directionForCharacter(character)
+        if character == "+" {
+            lastTakenTurnAtIntersection = nextTurnForCart()
+        }
+    }
+
+    private func directionForCharacter(_ character: Character) -> Direction {
+        switch character {
+        case "-", ">", "<":
+            return direction
+        case "|", "v", "^":
+            return direction
+        case "\\":
+            switch direction {
+            case .left:
+                return .up
+            case .right:
+                return .down
+            case .up:
+                return .left
+            case .down:
+                return .right
+            }
+        case "/":
+            switch direction {
+            case .left:
+                return .down
+            case .right:
+                return .up
+            case .up:
+                return .right
+            case .down:
+                return .left
+            }
+        case "+":
+            return nextDirectionAtIntersection()
+        default:
+            fatalError()
+        }
+    }
+
+    private func nextDirectionAtIntersection() -> Direction {
+        let nextTurn = nextTurnForCart()
+
+        switch direction {
+        case .up:
+            switch nextTurn {
+            case .left:
+                return .left
+            case .right:
+                return .right
+            case .straight:
+                return .up
+            }
+        case .down:
+            switch nextTurn {
+            case .left:
+                return .right
+            case .right:
+                return .left
+            case .straight:
+                return .down
+            }
         case .left:
-            nextTurn = .straight
+            switch nextTurn {
+            case .left:
+                return .down
+            case .right:
+                return .up
+            case .straight:
+                return .left
+            }
         case .right:
+            switch nextTurn {
+            case .left:
+                return .up
+            case .right:
+                return .down
+            case .straight:
+                return .right
+            }
+        }
+    }
+
+    private func nextTurnForCart() -> Turn {
+        let nextTurn: Turn
+        if let lastTakenTurnAtIntersection = lastTakenTurnAtIntersection {
+            switch lastTakenTurnAtIntersection {
+            case .left:
+                nextTurn = .straight
+            case .right:
+                nextTurn = .left
+            case .straight:
+                nextTurn = .right
+            }
+        }
+        else {
             nextTurn = .left
-        case .straight:
-            nextTurn = .right
         }
+        return nextTurn
     }
-    else {
-        nextTurn = .left
-    }
-    return nextTurn
 }
+
 
 var lines = input.split(separator: "\n").map { String($0) }
 var carts = [Cart]()
@@ -351,52 +372,35 @@ func day13(carts: [Cart]) {
     var carts = carts
     var hasCrashedBefore = false
     while true {
-        for cart in carts {
-            var nextX = cart.x
-            var nextY = cart.y
-            switch cart.direction {
-            case .left:
-                nextX -= 1
-            case .right:
-                nextX += 1
-            case .up:
-                nextY -= 1
-            case .down:
-                nextY += 1
-            }
-
-            let secondCrashedCart = carts
-                .filter { $0 !== cart }
-                .first { $0.x == nextX && $0.y == nextY}
-
-            if let secondCrashedCart = secondCrashedCart {
-                // Print for Part 1
-                if !hasCrashedBefore {
-                    print("\(nextX),\(nextY)")
-                    hasCrashedBefore = true
-                }
-
-                cart.crashed = true
-                secondCrashedCart.crashed = true
-                continue
-            }
-
-            cart.x = nextX
-            cart.y = nextY
-            cart.direction = directionForCharacter(lines[nextY][nextX], cart: cart)
-            if lines[nextY][nextX] == "+" {
-                cart.lastTakenTurnAtIntersection = nextTurnForCart(cart)
-            }
-        }
-
         carts = carts
-            .filter { !$0.crashed }
             .sorted(by: { (c1, c2) -> Bool in
                 if c1.y == c2.y {
                     return c1.x < c2.x
                 }
                 return c1.y < c2.y
             })
+
+        for cart in carts {
+            cart.updatePosition()
+            cart.updateDirection(lines[cart.y][cart.x])
+
+            let secondCrashedCart = carts
+                .filter { $0 !== cart }
+                .first { $0.x == cart.x && $0.y == cart.y}
+
+            if let secondCrashedCart = secondCrashedCart {
+                // Print for Part 1
+                if !hasCrashedBefore {
+                    print("\(cart.x),\(cart.y)")
+                    hasCrashedBefore = true
+                }
+
+                cart.crashed = true
+                secondCrashedCart.crashed = true
+            }
+        }
+
+        carts = carts.filter { !$0.crashed }
 
         if carts.count == 1 {
             print("\(carts[0].x),\(carts[0].y)")
