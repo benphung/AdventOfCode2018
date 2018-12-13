@@ -36,8 +36,8 @@
 
  For brevity, in this example, only the combinations which do produce a plant are listed. (Your input includes all possible combinations.) Then, the next 20 generations will look like this:
 
- 1         2         3
- 0         0         0         0
+                 1         2         3
+       0         0         0         0
  0: ...#..#.#..##......###...###...........
  1: ...#...#....#.....#..#..#..#...........
  2: ...##..##...##....#..#..#..##..........
@@ -68,10 +68,18 @@
 
  After 20 generations, what is the sum of the numbers of all pots which contain a plant?
 
+
+ --- Part Two ---
+
+ You realize that 20 generations aren't enough. After all, these plants will need to last another 1500 years to even reach your timeline, not to mention your future.
+
+ After fifty billion (50000000000) generations, what is the sum of the numbers of all pots which contain a plant?
+
  */
+
 let inputLines = input.split(separator: "\n").map { String($0) }
 let initialState: [Bool] = inputLines[0].split(separator: " ")[2].map { $0 == "#" }
-var rules: [([Bool], Bool)] = inputLines[1..<inputLines.count]
+let rules: [([Bool], Bool)] = inputLines[1..<inputLines.count]
     .map { inputLine -> ([Bool], Bool) in
         let split = inputLine.split(whereSeparator: { (character) -> Bool in
             !"#.".contains(character)
@@ -81,70 +89,41 @@ var rules: [([Bool], Bool)] = inputLines[1..<inputLines.count]
         return (before, after)
 }
 
-func part1() {
-    var leftIndex = 0
-    var before: [Bool] = initialState
-
-    for _ in 1...20 {
-        leftIndex -= 4
-        before = [false, false, false, false] + before + [false, false, false, false]
-        var after = Array(repeating: false, count: before.count)
-        for rule in rules {
-            for k in 2..<before.count-4 {
-                if Array(before[k...k+4]) == rule.0 {
-                    after[k+2] = rule.1
-                }
-            }
-        }
-        before = after
-    }
-
-    var sum = 0
-    for i in 0..<before.count {
-        if before[i] {
-            sum += i + leftIndex
-        }
-    }
-    print(sum)
-}
-
-part1() // 2349
-
-
-/*
- --- Part Two ---
-
- You realize that 20 generations aren't enough. After all, these plants will need to last another 1500 years to even reach your timeline, not to mention your future.
-
- After fifty billion (50000000000) generations, what is the sum of the numbers of all pots which contain a plant?
-
- */
-func part2() {
+func day12() {
     let iterationAfterWhichDiffStabilizes = 184
     var leftIndex = 0
     var before: [Bool] = initialState
     var previousSum = 0
     for generation in 1...iterationAfterWhichDiffStabilizes {
-        leftIndex -= 4
         before = [false, false, false, false] + before + [false, false, false, false]
+        leftIndex -= 4
+
         var after = Array(repeating: false, count: before.count)
         for rule in rules {
-            for k in 2..<before.count-4 {
+            for k in 0..<before.count-4 {
                 if Array(before[k...k+4]) == rule.0 {
                     after[k+2] = rule.1
                 }
             }
         }
+
+        let firstPlantIndex = after.firstIndex(of: true)!
+        let lastPlantIndex = after.lastIndex(of: true)!
+        after = Array(after[firstPlantIndex...lastPlantIndex])
+        leftIndex += firstPlantIndex
+
+        let sum = after.enumerated()
+            .filter { $0.element }
+            .map { $0.offset + leftIndex }
+            .reduce(0, +)
+
         before = after
 
-        var sum = 0
-        for i in 0..<after.count {
-            if after[i] {
-                sum += i + leftIndex
-            }
+        // Print for part 1
+        if generation == 20 {
+            print(sum)
         }
 
-        print("\(generation): \(sum - previousSum)")
         previousSum = sum
     }
 
@@ -152,4 +131,6 @@ func part2() {
     print(previousSum + (50000000000 - iterationAfterWhichDiffStabilizes) * 42)
 }
 
-part2() // 2100000001168
+// 2349
+// 2100000001168
+day12()
